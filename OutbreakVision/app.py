@@ -91,7 +91,12 @@ def mergeCombined_LiteracyRates():
     )
     merged_df['Literacy Rate'].fillna(0.85, inplace=True)
     merged_df.drop(merged_df.index[-1], inplace=True)
-    merged_df.to_csv('data/combined_country_data.csv', index=False)
+
+    merged_df['GDP per Capita'].fillna(merged_df['GDP per Capita'].mean(), inplace=True)
+    merged_df['Population Density'].fillna(merged_df['Population Density'].mean(), inplace=True)
+    merged_df['Pollution'].fillna(merged_df['Pollution'].mean(), inplace=True)
+    merged_df['Food Insecurity'].fillna(merged_df['Food Insecurity'].mean(), inplace=True)
+    merged_df['Travel (Arrival, Tourism)'].fillna(merged_df['Travel (Arrival, Tourism)'].mean(), inplace=True)
 
 
 if __name__ == '__main__':
