@@ -4,6 +4,7 @@ from seir_model import process_country_data
 from pathlib import Path
 import sqlite3
 import csv
+import pandas as pd
 
 
 # Initialize Flask app with explicit static folder configuration
@@ -48,7 +49,53 @@ def read_csv(file_path):
     return data
 
 
+def mergeCombined_GlobalCovid():
+    # Read datasets
+    covid_df = pd.read_csv('data/Global Covid-19 Dataset.csv', encoding='latin1')
+    combined_df = pd.read_csv('data/combined_country_data.csv')
+    # Merge the dataframes directly by selecting the needed columns from covid_df,
+    # matching "Country" in combined_df with "Country Name" in covid_df.
+
+    merged_df = pd.merge(
+        combined_df,
+        covid_df[['Country Name', 'Cases', 'Recovered', 'Deaths']],
+        left_on='Country',
+        right_on='Country Name',
+        how='left'
+    )
+
+    # Drop the redundant "Country Name" column from the merged DataFrame
+    merged_df.drop(columns=['Country Name'], inplace=True)
+
+    # Save the merged DataFrame back to CSV
+    merged_df.dropna(subset=['Cases'], inplace=True)
+
+
+    merged_df['Health Access'].fillna(35, inplace=True)
+    merged_df.to_csv('data/combined_country_data.csv', index=False)
+    print("combined_country_dataset.csv now includes covid death, infected, and recovery columns.")
+
+
+def mergeCombined_LiteracyRates():
+    combined_df = pd.read_csv('data/combined_country_data.csv')
+    literacy_df = pd.read_csv('data/Literacy Rate.csv')
+
+    combined_df.drop('Literacy Rate', axis=1, inplace=True)
+
+    merged_df = pd.merge(
+        combined_df,
+        literacy_df[['Country', 'Literacy Rate']],
+        left_on='Country',
+        right_on='Country',
+        how='left'
+    )
+    merged_df['Literacy Rate'].fillna(0.85, inplace=True)
+
+    merged_df.to_csv('data/combined_country_data.csv', index=False)
+
+
 if __name__ == '__main__':
+    
     # Ensure static directory exists with proper permissions
     file_configs = [
         ("data/API_EN.ATM.PM25.MC.M3_DS2_en_csv_v2_2052.csv", "2020", "Pollution"),
@@ -67,6 +114,10 @@ if __name__ == '__main__':
     # Save combined data to a new CSV file
     combined_df.to_csv("data/combined_country_data.csv")
 
+
+    mergeCombined_GlobalCovid()
+    mergeCombined_LiteracyRates()
+
     # Print first few rows to verify
     print("\nFirst few rows of combined data:")
     print(combined_df.head())
@@ -79,3 +130,4 @@ if __name__ == '__main__':
     static_dir.mkdir(exist_ok=True, mode=0o755)
     
     app.run(debug=True, threaded=True)
+    
