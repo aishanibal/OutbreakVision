@@ -97,6 +97,7 @@ def mergeCombined_LiteracyRates():
     merged_df['Pollution'].fillna(merged_df['Pollution'].mean(), inplace=True)
     merged_df['Food Insecurity'].fillna(merged_df['Food Insecurity'].mean(), inplace=True)
     merged_df['Travel (Arrival, Tourism)'].fillna(merged_df['Travel (Arrival, Tourism)'].mean(), inplace=True)
+    merged_df.to_csv('data/combined_country_data.csv', index=False)
 
 
 if __name__ == '__main__':
