@@ -90,7 +90,7 @@ def mergeCombined_LiteracyRates():
         how='left'
     )
     merged_df['Literacy Rate'].fillna(0.85, inplace=True)
-
+    merged_df.drop(merged_df.index[-1], inplace=True)
     merged_df.to_csv('data/combined_country_data.csv', index=False)
 
 
