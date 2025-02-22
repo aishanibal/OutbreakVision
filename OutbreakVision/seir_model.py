@@ -4,6 +4,9 @@ matplotlib.use('Agg')  # Set the backend before importing pyplot
 import matplotlib.pyplot as plt
 import geopandas as gpd
 from pathlib import Path
+import glob
+import os
+import pandas as pd
 
 class SEIRModel:
     def __init__(self, S0, E0, I0, R0, beta, sigma, gamma, regions):
@@ -65,3 +68,49 @@ class SEIRModel:
         plt.close(fig)  # Explicitly close the figure
         
         return 'seir_map.png'
+
+def process_country_data(file_configs):
+    """
+    Reads multiple CSV files, extracts the specified column for each country,
+    and combines them into a single DataFrame.
+
+    :param file_configs: List of tuples (file_path, column_name, output_name)
+                         - file_path: Path to the CSV file
+                         - column_name: The column containing the data to extract
+                         - output_name: The name for the extracted column in the final DataFrame
+
+    :return: A merged DataFrame with 'Country' as the first column and one column per CSV.
+    """
+    combined_df = None
+
+    for file_path, column_name, output_name in file_configs:
+        try:
+            # Read the CSV file
+            df = pd.read_csv(file_path, skiprows=4)
+            with open(file_path, "r", encoding="utf-8") as f:
+                for _ in range(10):  # Print first 10 lines
+                    print(f.readline())
+
+            # Ensure required columns exist
+            if column_name not in df.columns:
+                print(f"Warning: Column '{column_name}' not found in {file_path}")
+                continue
+
+            # Assuming the first column is the country column
+            country_column = df.columns[0]
+
+            # Create a temporary DataFrame with Country and the specified column
+            temp_df = df[[country_column, column_name]].rename(
+                columns={country_column: "Country", column_name: output_name}
+            )
+
+            # Merge into the main DataFrame
+            if combined_df is None:
+                combined_df = temp_df
+            else:
+                combined_df = combined_df.merge(temp_df, on="Country", how="outer")
+
+        except Exception as e:
+            print(f"Error processing {file_path}: {str(e)}")
+
+    return combined_df if combined_df is not None else pd.DataFrame()
