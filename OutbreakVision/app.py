@@ -57,7 +57,9 @@ if __name__ == '__main__':
         ("data/API_SE.ADT.LITR.ZS_DS2_en_csv_v2_76004.csv", "2023", "Literacy Rate"),
         ("data/API_SN.ITK.MSFI.ZS_DS2_en_csv_v2_16093.csv", "2022", "Food Insecurity"),
         ("data/API_ST.INT.ARVL_DS2_en_csv_v2_2493.csv", "2020", "Travel (Arrival, Tourism)"),
+        ("data/API_SH.UHC.SRVS.CV.XD_DS2_en_csv_v2_15880.csv", "2021", "Health Access"),
         # Add other files and columns as needed
+
     ]
     # Process the files
     combined_df = process_country_data(file_configs)
