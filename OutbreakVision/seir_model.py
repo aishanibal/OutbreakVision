@@ -41,11 +41,11 @@ class SEIRModel:
     def generate_plot(self, days):
         results = self.run_simulation(days)
         
-        # Load geographic data
-        world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+        # Load geographic data from a local file or URL
+        world = gpd.read_file("https://naciscdn.org/naturalearth/110m/cultural/ne_110m_admin_0_countries.zip")
         
         # Add infection data to the geographic data
-        world['infection_rate'] = world['name'].map(results).fillna(0)
+        world['infection_rate'] = world['NAME'].map(results).fillna(0)
         
         # Create static directory if it doesn't exist
         static_dir = Path('static')
