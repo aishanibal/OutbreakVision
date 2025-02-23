@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impact Map</title>
+    <style>
+        body {
+            background-color: #1a1a2e;
+            color: #e0e0eb;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 {
+            color: #9f7aea;
+        }
+        .input-container {
+            margin: 20px;
+        }
+        input {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            background-color: #9f7aea;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #6b46c1;
+        }
+        .video-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Impact Map Visualization</h1>
+    <form method="POST">
+        <div class="input-container">
+            <label for="incubation_period">Virus Incubation Period (days):</label>
+            <input type="number" id="incubation_period" name="incubation_period" min="1" max="30" value="14">
+            <button type="submit">Generate Map</button>
+        </div>
+    </form>
+
+    {% if video_filename %}
+    <div class="video-container">
+        <video controls width="800">
+            <source src="{{ video_filename }}" type="video/mp4">
+        </video>
+    </div>
+    {% endif %}
+</body>
+</html>

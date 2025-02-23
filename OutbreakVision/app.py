@@ -4,7 +4,8 @@ import csv
 import pandas as pd
 from seir_model import process_country_data
 from random_forest import train_model, predict_impact_score  # Import functions from the separate file
-from impact_images_and_simulation import generate_map_visualization
+from impact_images_and_simulation import generate_impact_video
+from impact_score_generator import generate_impact_scores
 import joblib
 import numpy as np
 import os
@@ -12,7 +13,7 @@ import os
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 
 
-@app.route('/')
+@app.route('/map')
 # def index():
 #     """
 #     Render the homepage with CSV data.
@@ -28,51 +29,74 @@ app = Flask(__name__, static_folder='static', static_url_path='/static')
 #         return render_template('index.html', data=csv_data)
 #     except Exception as e:
 #         return render_template('error.html', error_message=f"Error reading CSV file: {str(e)}")
-def index():
+@app.route('/map', methods=['GET', 'POST'])
+def map():
     """
-    Render the homepage with the map visualization.
+    Render the map visualization page.
     """
-    # Generate the map visualization
-    video_filename, snapshot_folder = generate_map_visualization()
+    if request.method == 'GET':
+        return render_template('map.html', video_filename=None, snapshots=[])
 
-    # Get the list of snapshot files
-    snapshots = [f for f in os.listdir(snapshot_folder) if f.endswith('.png')]
-    snapshots.sort()
+    elif request.method == 'POST':
+        incubation_period = float(request.form.get("incubation_period", 14))  # Default to 14 days
+        decay_factor = 1 / incubation_period  # Compute decay factor
 
-    return render_template('index.html', video_filename=video_filename, snapshots=snapshots)
+        # Step 1: Generate impact scores using decay_factor
+        generate_impact_scores(decay_factor)  # This updates "impact_overtime.csv"
 
+        # Step 2: Generate the map visualization (which reads from the updated CSV)
+        video_filename = generate_impact_video()  # No parameters needed, just reads the CSV
+
+        snapshot_folder = "ImpactScore_snapshots"
+
+        # Get the list of snapshot files
+        if os.path.exists(snapshot_folder):
+            snapshots = sorted([f for f in os.listdir(snapshot_folder) if f.endswith('.png')])
+        else:
+            snapshots = []
+
+        return render_template('map.html', video_filename=video_filename, snapshots=snapshots)
+
+
+@app.route('/')
 def home():
     return render_template("index.html")
 
 # Route to handle predictions
-@app.route("/predict", methods=["POST"])
+@app.route('/predict', methods=['GET', 'POST'])
 def predict():
-    try:
-        # Get user inputs from the request
-        data = request.json
-        user_inputs = data["inputs"]
+    """
+    Render the prediction page and handle predictions.
+    """
+    if request.method == 'GET':
+        # Render the prediction form
+        return render_template('predict.html')
+    elif request.method == 'POST':
+        try:
+            # Get user inputs from the request
+            data = request.json
+            user_inputs = data["inputs"]
 
-        # Validate inputs
-        if len(user_inputs) != 7:
-            raise ValueError("Expected 7 input values")
+            # Validate inputs
+            if len(user_inputs) != 7:
+                raise ValueError("Expected 7 input values")
 
-        # Make prediction
-        predicted_impact = predict_impact_score(user_inputs)
+            # Make prediction (replace with your prediction logic)
+            predicted_impact = predict_impact_score(user_inputs)
 
-        # Ensure prediction is within bounds
-        predicted_impact = float(np.clip(predicted_impact, 1, 100))
+            # Ensure prediction is within bounds
+            predicted_impact = float(np.clip(predicted_impact, 1, 100))
 
-        # Return the result as JSON
-        return jsonify({
-            "score": predicted_impact,
-            "success": True
-        })
-    except Exception as e:
-        return jsonify({
-            "error": str(e),
-            "success": False
-        }), 400
-
+            # Return the result as JSON
+            return jsonify({
+                "score": predicted_impact,
+                "success": True
+            })
+        except Exception as e:
+            return jsonify({
+                "error": str(e),
+                "success": False
+            }), 400
 def read_csv(file_path):
     """
     Read a CSV file and return its data as a list of lists.
