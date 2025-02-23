@@ -6,6 +6,7 @@ from seir_model import process_country_data
 from random_forest import train_model, predict_impact_score  # Import functions from the separate file
 from impact_images_and_simulation import generate_impact_video
 from impact_score_generator import generate_impact_scores
+from trends_app import generate_trend_graph, load_virus_data
 import joblib
 import numpy as np
 import os
@@ -97,6 +98,38 @@ def predict():
                 "error": str(e),
                 "success": False
             }), 400
+
+# Available Regions and Viruses
+regions = {
+    'United States': 331_002_651,
+    'United Kingdom': 67_886_011,
+    'India': 1_380_004_385,
+    'Mexico': 128_932_753,
+    'Russia': 145_912_025,
+    'Brazil': 212_559_417,
+}
+viruses = ['Flu', 'COVID']
+
+@app.route('/select')
+def select():
+    return render_template('trends.html', regions=regions.keys(), viruses=viruses)
+
+@app.route('/trends', methods=['GET'])
+def trends():
+    virus = request.args.get('virus')
+    country = request.args.get('country')
+
+    if virus not in viruses or country not in regions:
+        return jsonify({"error": "Invalid virus or country selection"}), 400
+
+    # Load the data
+    actual_x, actual_y, pred_x, pred_y = load_virus_data(virus, country)
+
+    # Generate graph
+    graph_html = generate_trend_graph(actual_x, actual_y, pred_x, pred_y, virus, country)
+
+    return render_template('trends.html', graph_html=graph_html, regions=regions.keys(), viruses=viruses)
+
 def read_csv(file_path):
     """
     Read a CSV file and return its data as a list of lists.
