@@ -2,6 +2,7 @@
 Hacklytics 2025
 
 **To view this project, run app.py**
+View requirements.txt to find list of python installations necessary to run this project.
 
 
 The idea for OutbreakVision came from witnessing how pandemics like COVID-19 affected different countries in vastly different ways. While some nations recovered quickly, others struggled for years. We set out to build a tool that could predict the impact of future outbreaks based on key socioeconomic factors. 
