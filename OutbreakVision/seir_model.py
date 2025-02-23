@@ -87,9 +87,7 @@ def process_country_data(file_configs):
         try:
             # Read the CSV file
             df = pd.read_csv(file_path, skiprows=4)
-            with open(file_path, "r", encoding="utf-8") as f:
-                for _ in range(10):  # Print first 10 lines
-                    print(f.readline())
+
 
             # Ensure required columns exist
             if column_name not in df.columns:

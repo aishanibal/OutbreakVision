@@ -3,83 +3,82 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-import matplotlib
-matplotlib.use('Agg')
-
-import matplotlib.pyplot as plt
+import joblib
 
 
+def train_model():
+    # Load the CSV
+    file_path = "data/combined_country_data.csv"
+    df = pd.read_csv(file_path)
 
-# 1. Load the CSV (no missing-value handling)
-file_path = "data/combined_country_data.csv"  # Update path if needed
-df = pd.read_csv(file_path)
+    # Create Impact_Score using the specified calculations
+    df["Log_Cases"] = np.log1p(df["Cases"])
+    df["Log_Deaths"] = np.log1p(df["Deaths"])
 
-# Preview the first few rows
-print("DataFrame Head:\n", df.head(), "\n")
+    impact_raw = (
+            df["Log_Deaths"] * 5.0 +
+            df["Log_Cases"] * 0.7 +
+            df["Pollution"] * 1.5 +
+            (100 - df["Health Access"]) * 2.0 +
+            (100 - df["Literacy Rate"]) * 1.2 +
+            (50000 / (df["GDP per Capita"] + 1)) * 1.5
+    )
 
-# 2. Create a custom Impact Score (range 1–100)
-#    Example formula combining 'Deaths', 'Cases', and 'Pollution'
-impact_raw = (
-    df["Deaths"] * 2.0 +    # Heavily weight deaths
-    df["Cases"] * 0.001 +   # Mildly weight total cases
-    df["Pollution"] * 0.5   # Mildly weight pollution
-)
+    # Create and save the impact scaler
+    scaler_impact = MinMaxScaler(feature_range=(1, 100))
+    scaled_impact = scaler_impact.fit_transform(impact_raw.values.reshape(-1, 1)).flatten()
+    df["Impact_Score"] = scaled_impact
 
-# Scale raw impact to [1..100]
-scaler_impact = MinMaxScaler(feature_range=(1, 100))
-impact_scaled = scaler_impact.fit_transform(impact_raw.values.reshape(-1, 1)).flatten()
-df["Impact_Score"] = impact_scaled
+    # Select feature columns
+    feature_cols = [
+        "Population Density",
+        "GDP per Capita",
+        "Literacy Rate",
+        "Food Insecurity",
+        "Health Access",
+        "Travel (Arrival, Tourism)",
+        "Pollution"
+    ]
 
-# 3. Select all numeric columns EXCEPT 'Impact_Score'
-all_numeric_cols = df.select_dtypes(include=[np.number]).columns
-feature_cols = all_numeric_cols.difference(["Impact_Score"])
+    # Extract features (X) and target (y)
+    X = df[feature_cols].values
+    y = df["Impact_Score"].values
 
-print("All Numeric Feature Columns:\n", feature_cols, "\n")
+    # Create and save the feature scaler
+    scaler_X = StandardScaler()
+    X_scaled = scaler_X.fit_transform(X)
 
-# 4. Extract Features (X) and Target (y)
-X = df[feature_cols].values
-y = df["Impact_Score"].values
+    # Train the model
+    rf = RandomForestRegressor(n_estimators=100, max_depth=8, random_state=42)
+    rf.fit(X_scaled, y)
 
-# 5. Split data (80% train, 20% test)
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+    # Save scalers and model
+    joblib.dump(rf, "impact_score_model.pkl")
+    joblib.dump(scaler_X, "feature_scaler.pkl")
+    joblib.dump(scaler_impact, "impact_scaler.pkl")
 
-# 6. (Optional) Standardize features
-scaler_X = StandardScaler()
-X_train = scaler_X.fit_transform(X_train)
-X_test = scaler_X.transform(X_test)
+    # Print sample predictions
+    sample_indices = np.random.choice(len(X), 5)
+    print("\nSample Predictions:")
+    for idx in sample_indices:
+        pred = rf.predict(X_scaled[idx].reshape(1, -1))[0]
+        print(f"Country: {df.iloc[idx]['Country']}")
+        print(f"Actual Impact Score: {y[idx]:.2f}")
+        print(f"Predicted Impact Score: {pred:.2f}\n")
 
-# 7. Train a Random Forest
-rf = RandomForestRegressor(
-    n_estimators=100,
-    max_depth=8,
-    random_state=42
-)
-rf.fit(X_train, y_train)
 
-# 8. Evaluate on test set
-test_preds = rf.predict(X_test)
-mae = mean_absolute_error(y_test, test_preds)
-mse = mean_squared_error(y_test, test_preds)
-r2 = r2_score(y_test, test_preds)
+def predict_impact_score(user_inputs):
+    # Load model and scaler
+    rf = joblib.load("impact_score_model.pkl")
+    scaler_X = joblib.load("feature_scaler.pkl")
 
-print("=== Random Forest Performance ===")
-print(f"MAE:  {mae:.3f}")
-print(f"MSE:  {mse:.3f}")
-print(f"R^2:  {r2:.3f}")
+    # Scale inputs
+    user_inputs_scaled = scaler_X.transform(np.array(user_inputs).reshape(1, -1))
 
-# 9. Quick comparison of predictions vs. actual
-print("\nSample Predictions vs Actual:")
-for i in range(min(5, len(test_preds))):
-    print(f"Predicted: {test_preds[i]:.2f}, Actual: {y_test[i]:.2f}")
+    # Get prediction
+    prediction = rf.predict(user_inputs_scaled)[0]
 
-# 10. Visualize predictions vs. actual
-plt.figure(figsize=(6, 6))
-plt.scatter(y_test, test_preds, alpha=0.7, color="blue")
-plt.plot([1, 100], [1, 100], color="red", linestyle="--")  # Ideal diagonal
-plt.xlabel("Actual Impact Score")
-plt.ylabel("Predicted Impact Score")
-plt.title("Random Forest: Predicted vs. Actual Impact Score (All Numeric Columns)")
-plt.show()
+    # Ensure prediction is within bounds
+    prediction = np.clip(prediction, 1, 100)
+
+    return prediction

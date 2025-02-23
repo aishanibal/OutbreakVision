@@ -1,49 +1,75 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV Data</title>
+    <title>OutbreakVision</title>
     <style>
-        table {
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #2a0038, #004aad);
+            color: white;
+            text-align: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .container {
+            position: relative;
+            max-width: 800px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            font-size: 3rem;
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .cta-button {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            color: white;
+            background: #ff4081;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .cta-button:hover {
+            background: #ff1f5a;
+        }
+        .map-container {
             width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
+            height: 300px;
+            background: url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg') no-repeat center center/cover;
+            border-radius: 10px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>SEIR Model: Infection Spread Across Countries</h1>
-    <img src="{{ url_for('static', filename=img_path) }}" alt="SEIR Model Map">
-
-    <h2>CSV Data</h2>
-    <table>
-        <thead>
-            <tr>
-                {% for column in data[0] %}
-                    <th>{{ column }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in data[1:] %}
-            <tr>
-                {% for value in row %}
-                    <td>{{ value }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
+    <div class="container">
+        <h1>OutbreakVision</h1>
+        <p>Tracking the impact of outbreaks worldwide with real-time data visualization.</p>
+        <div class="button-container">
+            <button class="cta-button" onclick="window.location.href='/predict'">Predict Country</button>
+            <button class="cta-button" onclick="window.location.href='/map'">Disease Impact</button>
+             <button class="cta-button" onclick="window.location.href='/select'">Google Trends Data</button>
+        </div>
+        <div class="map-container"></div>
+    </div>
 </body>
 </html>
-
