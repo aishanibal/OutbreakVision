@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Graph</title>
+
+    <!-- Add inline CSS to style the form elements -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Container for the form */
+        form {
+            display: flex;
+            justify-content: center; /* Center the form elements */
+            align-items: center; /* Vertically center the form elements */
+            gap: 15px; /* Add space between elements */
+            margin-bottom: 20px; /* Space between the form and the graph */
+        }
+
+        /* Style each select dropdown */
+        select {
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        /* Style the submit button */
+        input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        /* Container for the graph */
+        #graph {
+            width: 90%; /* Make the graph width 90% of the parent container */
+            height: 70vh; /* Make the height 70% of the viewport height */
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1; /* Allow the graph to grow and fill available space */
+        }
+
+        /* Make sure the body takes up the full screen */
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Virus Prediction based on Google Trends</h1>
+    
+    <!-- Select Virus and Country -->
+    <form action="/predict" method="get">
+        <label for="virus">Virus:</label>
+        <select id="virus" name="virus">
+            {% for virus in viruses %}
+                <option value="{{ virus }}">{{ virus }}</option>
+            {% endfor %}
+        </select>
+        
+        <label for="country">Country:</label>
+        <select id="country" name="country">
+            {% for region in regions %}
+                <option value="{{ region }}">{{ region }}</option>
+            {% endfor %}
+        </select>
+        
+        <input type="submit" value="Get Predictions">
+    </form>
+
+    <!-- Display Graph -->
+    <div id="graph">{{ graph_html|safe }}</div>
+</body>
+</html>
