@@ -1,0 +1,12 @@
+Flask
+geopandas
+matplotlib
+numpy
+opencv-python
+pandas
+plotly
+scikit-learn
+scipy
+shapely
+gunicorn
+werkzeug
