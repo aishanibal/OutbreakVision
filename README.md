@@ -2,6 +2,15 @@
 Hacklytics 2025
 
 **To view this project, run app.py**
+
+To run setup.sh, enter this in the command prompt:
+
+
+chmod +x setup.sh  # Make it executable (only once)
+./setup.sh
+
+
+
 View requirements.txt to find list of python installations necessary to run this project.
 
 
