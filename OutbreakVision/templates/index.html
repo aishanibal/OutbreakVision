@@ -1,49 +1,111 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV Data</title>
+    <title>Impact Score Predictor</title>
     <style>
-        table {
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
             width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid black;
             padding: 8px;
-            text-align: left;
+            box-sizing: border-box;
         }
-        th {
-            background-color: #f2f2f2;
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>SEIR Model: Infection Spread Across Countries</h1>
-    <img src="{{ url_for('static', filename=img_path) }}" alt="SEIR Model Map">
+    <h1>Impact Score Predictor</h1>
+    <p>Enter the following details for your country:</p>
+    <form id="impactForm">
 
-    <h2>CSV Data</h2>
-    <table>
-        <thead>
-            <tr>
-                {% for column in data[0] %}
-                    <th>{{ column }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in data[1:] %}
-            <tr>
-                {% for value in row %}
-                    <td>{{ value }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 
+        <!-- Existing Inputs -->
+        <div class="form-group">
+            <label for="population_density">Population Density (people/sq km):</label>
+            <input type="number" step="0.01" id="population_density" name="population_density" required>
+        </div>
+        <div class="form-group">
+            <label for="gdp_per_capita">GDP per Capita (USD):</label>
+            <input type="number"  step="0.01" id="gdp_per_capita" name="gdp_per_capita" required>
+        </div>
+        <div class="form-group">
+            <label for="literacy_rate">Literacy Rate (%):</label>
+            <input type="number" step="0.01" id="literacy_rate" name="literacy_rate" required>
+        </div>
+        <div class="form-group">
+            <label for="food_insecurity">Food Insecurity Index (0-1):</label>
+            <input type="number" step="0.01" id="food_insecurity" name="food_insecurity" required>
+        </div>
+        <div class="form-group">
+            <label for="health_access">Health Access Index (0-100):</label>
+            <input type="number" step="0.01" id="health_access" name="health_access" required>
+        </div>
+        <div class="form-group">
+            <label for="travel_tourism">Travel & Tourism Arrivals (thousands):</label>
+            <input type="number" step="0.01" id="travel_tourism" name="travel_tourism" required>
+        </div>
+        <!-- Pollution Input -->
+        <div class="form-group">
+            <label for="pollution">Pollution (PM2.5 concentration, µg/m³):</label>
+            <input type="number" step="0.01" id="pollution" name="pollution" required>
+        </div>
+        <button type="submit">Predict Impact Score</button>
+    </form>
+
+    <div class="result" id="result"></div>
+
+    <script>
+        document.getElementById("impactForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            // Get user inputs
+            const inputs = [
+                parseFloat(document.getElementById("population_density").value),
+                parseFloat(document.getElementById("gdp_per_capita").value),
+                parseFloat(document.getElementById("literacy_rate").value),
+                parseFloat(document.getElementById("food_insecurity").value),
+                parseFloat(document.getElementById("health_access").value),
+                parseFloat(document.getElementById("travel_tourism").value),
+                parseFloat(document.getElementById("pollution").value),  // Pollution input
+            ];
+
+            // Send inputs to the backend
+            const response = await fetch("/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ inputs }),
+            });
+
+            const result = await response.json();
+            document.getElementById("result").innerText = `Predicted Impact Score: ${result.score.toFixed(2)}`;
+        });
+    </script>
 </body>
 </html>
-
